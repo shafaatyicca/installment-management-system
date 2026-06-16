@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Phone, CreditCard, MapPin, UserCheck } from "lucide-react"; 
+import { Search, Phone, CreditCard, MapPin, UserCheck, Eye, Edit2, Trash2 } from "lucide-react"; 
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -14,15 +14,13 @@ interface Customer {
   guarantorName?: string;
 }
 
-// 1. Props interface mein onEditClick shamil kiya
 interface CustomerTableProps {
   customers: Customer[];
   loading: boolean;
   onEditClick: (customer: Customer) => void; 
-  onSuccess: () => void; // Table refresh karne ke liye
+  onSuccess: () => void;
 }
 
-// 2. Arguments mein receive kiya
 export default function CustomerTable({ customers, loading, onEditClick, onSuccess }: CustomerTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -36,48 +34,111 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
   });
   
   const handleDelete = async (id: string) => {
-  if (confirm("Kya aap waqai is customer ko delete karna chahte hain?")) {
-    try {
-      const response = await fetch(`/api/customers?id=${id}`, {
-        method: "DELETE",
-      });
-      const data = await response.json();
+    if (confirm("Kya aap waqai is customer ko delete karna chahte hain?")) {
+      try {
+        const response = await fetch(`/api/customers?id=${id}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
 
-      if (data.success) {
-        toast.success("Customer delete ho gaya!");
-        if (onSuccess) onSuccess(); // Table refresh karne ke liye
-      } else {
-        toast.error(data.message || "Delete nahi ho saka");
+        if (data.success) {
+          toast.success("Customer delete ho gaya!");
+          if (onSuccess) onSuccess();
+        } else {
+          toast.error(data.message || "Delete nahi ho saka");
+        }
+      } catch (error) {
+        toast.error("Network ka masla hai.");
       }
-    } catch (error) {
-      toast.error("Network ka masla hai.");
     }
-  }
-};
+  };
 
   if (loading) {
     return (
-      <div className="w-full bg-slate-800/30 border border-slate-800 rounded-2xl p-12 flex flex-col items-center justify-center gap-3">
-        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm text-slate-400">Customers ka data load ho raha hai...</p>
+      <div className="w-full bg-slate-800/30 border border-slate-800 rounded-2xl p-8 md:p-12 flex flex-col items-center justify-center gap-3">
+        <div className="w-7 h-7 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-xs md:text-sm text-slate-400">Customers ka data load ho raha hai...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="relative max-w-md">
-        <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
+    <div className="space-y-4 w-full">
+      {/* Search Bar Input Adjustment */}
+      <div className="relative w-full max-w-md">
+        <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
         <input
           type="text"
-          placeholder="Customer ka Naam, CNIC ya Mobile search karein..."
+          placeholder="Naam, CNIC ya Mobile search karein..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-12 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition placeholder:text-slate-500"
+          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs md:text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition placeholder:text-slate-500"
         />
       </div>
 
-      <div className="w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl">
+      {/* 📱 1. MOBILE RESPONSIVE CARDS VIEW (md:hidden - Sirf mobile pr dikhega) */}
+      <div className="grid grid-cols-1 gap-3 md:hidden">
+        {filteredCustomers.length === 0 ? (
+          <div className="text-center py-8 text-xs text-slate-500 bg-slate-800/20 rounded-xl border border-slate-800">
+            Koi customer nahi mila.
+          </div>
+        ) : (
+          filteredCustomers.map((customer) => (
+            <div key={customer._id} className="bg-slate-800/50 border border-slate-800/80 p-4 rounded-xl space-y-3 shadow-md">
+              {/* Header Title & Guarantor Badge */}
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="text-sm font-bold text-slate-100 tracking-tight">{customer.name}</h3>
+                {customer.guarantorName && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/10 shrink-0">
+                    <UserCheck className="w-2.5 h-2.5" /> {customer.guarantorName}
+                  </span>
+                )}
+              </div>
+
+              {/* CNIC, Mobile & Address Info Area */}
+              <div className="space-y-1.5 text-[11px] text-slate-400">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <span>CNIC: {customer.cnic}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Mob: {customer.mobile}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                  <span className="line-clamp-2">{customer.address}</span>
+                </div>
+              </div>
+
+              {/* Action Buttons: Slim & Iconized for Mobile fingers */}
+              <div className="flex justify-end gap-1.5 pt-2 border-t border-slate-700/40">
+                <button 
+                  onClick={() => onEditClick(customer)}
+                  className="flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1.5 rounded-lg border border-amber-500/10 transition"
+                >
+                  <Edit2 className="w-3 h-3" /> Edit
+                </button>
+                <button 
+                  onClick={() => handleDelete(customer._id)}
+                  className="flex items-center gap-1 text-[11px] font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1.5 rounded-lg border border-red-500/10 transition"
+                >
+                  <Trash2 className="w-3 h-3" /> Delete
+                </button>
+                <Link 
+                  href={`/customers/${customer._id}`}
+                  className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-lg border border-indigo-500/10 transition"
+                >
+                  <Eye className="w-3 h-3" /> Profile
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* 🖥️ 2. DESKTOP VIEW TABLE (md:block - Mobile pr hide ho jayega) */}
+      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -133,12 +194,11 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                         Edit
                       </button>
                       <button 
-                      onClick={() => handleDelete(customer._id)}
-                      className="text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg border border-red-500/20 transition ml-2"
-                    >
-                      Delete
-                    </button>
-                      
+                        onClick={() => handleDelete(customer._id)}
+                        className="text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg border border-red-500/20 transition"
+                      >
+                        Delete
+                      </button>
                       <Link 
                         href={`/customers/${customer._id}`}
                         className="text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/20 transition"

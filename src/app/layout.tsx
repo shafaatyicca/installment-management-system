@@ -23,9 +23,11 @@ export default function RootLayout({
         <Sidebar />
 
         {/* 2. Dynamic Content Area with Left Margin for Sidebar Space */}
-        <main className="flex-1 min-h-screen md:pl-64 pt-16 md:pt-0 bg-slate-900">
-         {children}
-      </main>
+        <main className="flex-1 min-h-screen md:pl-56 pt-16 md:pt-0 bg-slate-900 overflow-x-hidden">
+          <div className="max-w-[1400px] mx-auto w-full"> {/* <-- Is se screen boht zyada khilegi nahi */}
+            {children}
+          </div>
+        </main>
 
       </body>
     </html>

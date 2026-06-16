@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
+import Customer from "@/models/Customer";
 import Invoice from "@/models/Invoice";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
@@ -12,6 +13,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
+    // Models ko ensure karne ke liye ek baar touch kar lete hain taake Mongoose register rakhe
+    const _c = Customer.modelName; 
+    const _p = Product.modelName;
+
     if (id) {
       const invoice = await Invoice.findById(id).populate("customer").populate("product");
       if (!invoice) {
@@ -20,6 +25,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, data: invoice });
     }
 
+    // Saari invoices nikalte waqt populate ko check karein
     const invoices = await Invoice.find({})
       .populate("customer")
       .populate("product")
@@ -27,7 +33,8 @@ export async function GET(request: Request) {
       
     return NextResponse.json({ success: true, data: invoices });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    // Agar server par koi bhi issue aaye to error log saaf mile
+    return NextResponse.json({ success: false, error: error.message || "Vercel Populate Error" }, { status: 500 });
   }
 }
 

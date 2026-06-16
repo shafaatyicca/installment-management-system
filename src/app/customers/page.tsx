@@ -11,7 +11,7 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // 1. Yeh state zaroori thi edit mode ke liye
+  // Edit mode tracking state
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
   const fetchCustomers = async () => {
@@ -33,52 +33,62 @@ export default function CustomersPage() {
     fetchCustomers();
   }, []);
 
-  // 2. Yeh function chalega jab table se Edit click hoga
+  // Table se edit click hone ka handler
   const handleEditOpen = (customer: any) => {
     setSelectedCustomer(customer);
     setIsModalOpen(true);
   };
 
-  // 3. Modal close hote hi state saaf karne ke liye
+  // Modal close handler
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedCustomer(null);
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6">
+    // 📱 Mobile par padding p-4 hogi aur bade screens par md:p-6 taake space zaya na ho
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-6 w-full max-w-full overflow-x-hidden">
       <Toaster position="top-center" />
 
-      <div className="max-w-6xl mx-auto space-y-6">
+      {/* Main Responsive Layout Wrapper */}
+      <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-6 rounded-2xl border border-slate-800 backdrop-blur-md">
+        {/* Top Header Card: Mobile par items center aur flex-col ho jayenge */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-slate-800/40 p-4 md:p-6 rounded-2xl border border-slate-800/80 backdrop-blur-md">
+          
+          {/* Left Side: Icon and Titles */}
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-indigo-600/10 rounded-xl text-indigo-400 border border-indigo-500/20">
-              <Users className="w-6 h-6" />
+            {/* Mobile par icon container thoda chota kiya taake tight lage */}
+            <div className="p-2.5 md:p-3 bg-indigo-600/10 rounded-xl text-indigo-400 border border-indigo-500/20 flex-shrink-0">
+              <Users className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">Customer Directory</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Apne saare customers ka data manage karein</p>
+              <h1 className="text-lg md:text-xl font-bold tracking-tight">Customer Directory</h1>
+              <p className="text-[11px] md:text-xs text-slate-400 mt-0.5">Apne saare customers ka data manage karein</p>
             </div>
           </div>
 
+          {/* Right Side Button: Mobile par w-full (poori width) aur text center hoga */}
           <button 
             onClick={() => { setSelectedCustomer(null); setIsModalOpen(true); }} 
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition text-sm w-full sm:w-auto justify-center"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 md:px-5 py-2.5 md:py-3 rounded-xl shadow-lg shadow-indigo-600/10 transition-all text-xs md:text-sm w-full sm:w-auto justify-center active:scale-[0.98]"
           >
-            <UserPlus className="w-4 h-4" /> Naya Customer Add Karein
+            <UserPlus className="w-4 h-4 flex-shrink-0" /> Naya Customer Add Karein
           </button>
         </div>
 
-        {/* handleEditOpen function pass kiya */}
-        <CustomerTable 
-          customers={customers} 
-          loading={loading} 
-          onEditClick={handleEditOpen} 
-          onSuccess={fetchCustomers}  
-        />
+        {/* 📊 Responsive Table Wrapper (Horizontal Scroll handling table ke andar hoti hai) */}
+        <div className="w-full overflow-hidden">
+          <CustomerTable 
+            customers={customers} 
+            loading={loading} 
+            onEditClick={handleEditOpen} 
+            onSuccess={fetchCustomers}  
+          />
+        </div>
       </div>
 
+      {/* Input / Edit Customer Popup Modal */}
       <CustomerModal 
         isOpen={isModalOpen} 
         onClose={handleModalClose} 

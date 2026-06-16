@@ -41,12 +41,12 @@ export default function Sidebar() {
       )}
 
       {/* 🏛️ MAIN SIDEBAR DRAWER (Desktop pr fixed, Mobile pr toggle responsive) */}
-      <aside className={`w-64 bg-slate-800 border-r border-slate-700 text-slate-100 flex flex-col h-screen fixed left-0 top-0 z-50 md:z-40 transform transition-transform duration-300 md:translate-x-0 ${
+      <aside className={`w-56 bg-slate-800 border-r border-slate-700 text-slate-100 flex flex-col h-screen fixed left-0 top-0 z-50 md:z-40 transform transition-transform duration-300 md:translate-x-0 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         
         {/* Brand Logo Header */}
-        <div className="p-6 border-b border-slate-700 flex items-center justify-between">
+        <div className="p-2 border-b border-slate-700 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-600 rounded-xl text-white">
               <Store className="w-5 h-5" />
@@ -63,7 +63,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto pt-6 md:pt-4">
+        <nav className="flex-1 p-2 space-y-1.5 overflow-y-auto pt-4 md:pt-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -73,7 +73,7 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)} // Link click krte hi drawer automatic mobile pr band ho jaye
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-all group ${
                   isActive
                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/10"
                     : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-100"
@@ -89,7 +89,7 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer Admin Summary */}
-        <div className="p-4 border-t border-slate-700 bg-slate-900/20 flex items-center gap-3">
+        <div className="p-2 border-t border-slate-700 bg-slate-900/20 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center font-bold text-indigo-400 border border-slate-600">
             S
           </div>
