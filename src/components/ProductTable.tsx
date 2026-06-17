@@ -33,7 +33,7 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
         const data = await response.json();
 
         if (data.success) {
-          toast.success("Product successfully deleted.");
+          toast.success("Pruduct successfully deleted.");
           if (onSuccess) onSuccess(); 
         } else {
           toast.error(data.message || "Delete failed, please try again.");
@@ -54,7 +54,7 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
 
   if (loading) {
     return (
-      <div className="w-full bg-slate-800 border border-slate-700 rounded-2xl p-8 md:p-12 flex flex-col items-center justify-center gap-3">
+      <div className="w-full bg-slate-800/30 border border-slate-800 rounded-2xl p-8 md:p-12 flex flex-col items-center justify-center gap-3">
         <div className="w-7 h-7 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-xs md:text-sm text-slate-400">Products stock load ho raha hai...</p>
       </div>
@@ -71,20 +71,19 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
           placeholder="Product ya Brand search karein..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs md:text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition placeholder:text-slate-500"
+          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs md:text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition placeholder:text-slate-500"
         />
       </div>
 
-      {/* 📱 1. MOBILE RESPONSIVE CARDS VIEW (FIXED FOR CHROMIUM GPU RENDERING BUG) */}
-      <div className="grid grid-cols-1 gap-3 md:hidden transform translate-z-0 will-change-transform">
+      {/* 📱 1. MOBILE RESPONSIVE CARDS VIEW (md:hidden - Mobile screen par table ki jagah cards dikhenge) */}
+      <div className="grid grid-cols-1 gap-3 md:hidden">
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-500 bg-slate-800 rounded-xl border border-slate-700">
+          <div className="text-center py-8 text-xs text-slate-500 bg-slate-800/20 rounded-xl border border-slate-800">
             Stock mein koi product nahi mila.
           </div>
         ) : (
           filteredProducts.map((product, index) => (
-            /* 🛠️ FIXED: Replaced bg-slate-800/50 and shadow-md with solid flat bg-slate-800 */
-            <div key={product._id} className="bg-slate-800 border border-slate-700 p-4 rounded-xl space-y-3 relative overflow-hidden">
+            <div key={product._id} className="bg-slate-800/50 border border-slate-800/80 p-4 rounded-xl space-y-3 shadow-md">
               
               {/* Card Header: Product Name & Stock Status Badge */}
               <div className="flex justify-between items-start gap-2">
@@ -97,7 +96,7 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
                 </div>
                 
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium shrink-0 ${
-                  product.stock > 0 ? "bg-emerald-950 text-emerald-400 border border-emerald-900" : "bg-red-950 text-red-400 border border-red-900"
+                  product.stock > 0 ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/10" : "bg-red-500/10 text-red-400 border border-red-500/10"
                 }`}>
                   {product.stock > 0 ? `${product.stock} Qty` : "Out of Stock"}
                 </span>
@@ -109,8 +108,8 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
                 <span>Brand: <strong className="text-slate-300">{product.brand || "—"}</strong></span>
               </div>
 
-              {/* 🛠️ FIXED: Replaced bg-slate-900/40 transparency with solid bg-slate-900 */}
-              <div className="grid grid-cols-2 gap-2 bg-slate-900 p-2.5 rounded-lg border border-slate-700 text-[11px]">
+              {/* Price Breakdown Details Box */}
+              <div className="grid grid-cols-2 gap-2 bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/60 text-[11px]">
                 <div>
                   <p className="text-slate-500 text-[10px] font-medium uppercase">Unit Cost</p>
                   <p className="font-semibold text-slate-300 mt-0.5">Rs. {product.costPrice.toLocaleString()}</p>
@@ -124,16 +123,16 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
               </div>
 
               {/* Actions Area: Edit & Delete for Mobile Touch */}
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-700">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-700/40">
                 <button 
                   onClick={() => onEditClick(product)}
-                  className="text-[11px] font-medium text-amber-400 bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg border border-slate-600 transition flex items-center gap-1"
+                  className="text-[11px] font-medium text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-lg border border-amber-500/10 transition flex items-center gap-1"
                 >
                   <Edit className="w-3 h-3" /> Edit
                 </button>
                 <button 
                   onClick={() => handleDelete(product._id)}
-                  className="text-[11px] font-medium text-red-400 bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg border border-slate-600 transition flex items-center gap-1"
+                  className="text-[11px] font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg border border-red-500/10 transition flex items-center gap-1"
                 >
                   <Trash2 className="w-3 h-3" /> Delete
                 </button>
@@ -144,12 +143,12 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
         )}
       </div>
 
-      {/* 🖥️ 2. DESKTOP VIEW TABLE (Cleaned up blur/opacity layers) */}
-      <div className="hidden md:block w-full bg-slate-800 border border-slate-700 rounded-md overflow-hidden">
+      {/* 🖥️ 2. DESKTOP VIEW TABLE (hidden md:block - Desktop par khud-ba-khud table show ho jaye) */}
+      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-md overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-700 bg-slate-900 text-slate-400 text-xs uppercase">
+              <tr className="border-b border-slate-700/60 bg-slate-800/60 text-slate-400 text-xs uppercase">
                 <th className="p-2">S#</th>
                 <th className="p-2">Product Details</th>
                 <th className="p-2">Brand / Model</th>
@@ -159,9 +158,9 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
                 <th className="p-2 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700 text-sm text-slate-200">
+            <tbody className="divide-y divide-slate-800 text-sm text-slate-200">
               {filteredProducts.map((product, index) => (
-                <tr key={product._id} className="hover:bg-slate-700/40 transition duration-150">
+                <tr key={product._id} className="hover:bg-slate-700/20 transition duration-150">
                   <td className="p-2 font-medium text-slate-400">{index + 1}</td>
                   <td className="p-2 text-slate-100 text-xs">{product.name}</td>
                   <td className="p-2 space-y-1">
@@ -176,8 +175,8 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
                   <td className="p-2">
                     <div className="flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-slate-500" />
-                      <span className={`px-2 py-0.5 rounded-md text-xs border ${
-                        product.stock > 0 ? "bg-emerald-950 text-emerald-400 border-emerald-900" : "bg-red-950 text-red-400 border-red-900"
+                      <span className={`px-2 py-0.5 rounded-md text-xs ${
+                        product.stock > 0 ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
                       }`}>
                         {product.stock > 0 ? `${product.stock} Items` : "Out of Stock"}
                       </span>
@@ -189,13 +188,13 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
                   <td className="p-2 text-right space-x-2">
                     <button 
                       onClick={() => onEditClick(product)}
-                      className="text-xs text-amber-400 bg-slate-700 hover:bg-slate-600 px-2.5 py-1.5 rounded-lg border border-slate-600 transition inline-flex items-center gap-1"
+                      className="text-xs text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1.5 rounded-lg border border-amber-500/20 transition inline-flex items-center gap-1"
                     >
                       <Edit className="w-3 h-3" />
                     </button>
                     <button 
                       onClick={() => handleDelete(product._id)}
-                      className="text-xs text-red-400 bg-slate-700 hover:bg-slate-600 px-2.5 py-1.5 rounded-lg border border-slate-600 transition inline-flex items-center gap-1"
+                      className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1.5 rounded-lg border border-red-500/20 transition inline-flex items-center gap-1"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
