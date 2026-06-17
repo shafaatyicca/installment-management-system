@@ -48,7 +48,7 @@ export default function ProductsPage() {
       <div className="max-w-6xl mx-auto space-y-2">
         
         {/* Top bar with Heading and Trigger Button */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/90 p-2 rounded-md border border-slate-800 md:bg-slate-800/40 md:backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-2 rounded-md border border-slate-800 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-indigo-600/10 rounded-xl text-indigo-400 border border-indigo-500/20">
               <Boxes className="w-6 h-6" />
