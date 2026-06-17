@@ -84,7 +84,7 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
           </div>
         ) : (
           filteredCustomers.map((customer) => (
-            <div key={customer._id} className="bg-slate-800/50 border border-slate-800/80 p-4 rounded-xl space-y-3 shadow-md relative overflow-hidden">
+            <div key={customer._id} className="bg-slate-900/70 border border-slate-700/60 p-4 rounded-xl space-y-3 relative overflow-hidden [transform:translateZ(0)] backface-visibility-hidden [will-change:transform]">
               {/* Header Title & Guarantor Badge */}
               <div className="flex justify-between items-start gap-2">
                 <h3 className="text-sm font-bold text-slate-100 tracking-tight">{customer.name}</h3>
@@ -134,7 +134,6 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
             </div>
           ))
         )}
-        <div className="h-4 w-full" aria-hidden="true"></div>
       </div>
 
       {/* 🖥️ 2. DESKTOP VIEW TABLE (md:block - Mobile pr hide ho jayega) */}
