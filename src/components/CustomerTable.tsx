@@ -107,7 +107,7 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
-                  <span className="line-clamp-2">{customer.address}</span>
+                  <span className="text-wrap text-xs">{customer.address}</span>
                 </div>
               </div>
 
