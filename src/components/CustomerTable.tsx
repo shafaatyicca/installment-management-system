@@ -125,13 +125,11 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                 >
                   <Trash2 className="w-3 h-3" /> Delete
                 </button>
-                <Link 
-                  href={`/customers/${customer._id}`}
-                  prefetch={false}
+                <button 
                   className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-lg border border-indigo-500/10 transition"
                 >
                   <Eye className="w-3 h-3" /> Profile
-                </Link>
+                </button>
               </div>
             </div>
           ))
