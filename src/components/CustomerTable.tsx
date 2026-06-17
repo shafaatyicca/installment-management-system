@@ -134,6 +134,7 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
             </div>
           ))
         )}
+        <div className="h-px w-full" aria-hidden="true"></div>
       </div>
 
       {/* 🖥️ 2. DESKTOP VIEW TABLE (md:block - Mobile pr hide ho jayega) */}
