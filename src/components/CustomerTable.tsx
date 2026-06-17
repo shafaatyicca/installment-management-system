@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Phone, CreditCard, MapPin, UserCheck, Eye, Edit2, Trash2 } from "lucide-react"; 
+import { Search, Phone, CreditCard, MapPin, UserCheck, Eye, Edit2, Trash2, Edit } from "lucide-react"; 
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -63,7 +63,7 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
   }
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-2 w-full">
       {/* Search Bar Input Adjustment */}
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
@@ -138,16 +138,17 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
       </div>
 
       {/* 🖥️ 2. DESKTOP VIEW TABLE (md:block - Mobile pr hide ho jayega) */}
-      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl">
+      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-md overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-700/60 bg-slate-800/60 text-slate-400 text-xs uppercase tracking-wider font-semibold">
-                <th className="py-4 px-6">Customer Name</th>
-                <th className="py-4 px-6">CNIC / Mobile</th>
-                <th className="py-4 px-6">Address</th>
-                <th className="py-4 px-6">Guarantor</th>
-                <th className="py-4 px-6 text-right">Actions</th>
+              <tr className="border-b border-slate-700/60 bg-slate-800/60 text-slate-400 text-xs uppercase">
+                <th className="p-2">#</th>
+                <th className="p-2">Customer Name</th>
+                <th className="p-2">CNIC / Mobile</th>
+                <th className="p-2">Address</th>
+                <th className="p-2">Guarantor</th>
+                <th className="p-2 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-sm text-slate-200">
@@ -158,12 +159,13 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((customer) => (
+                filteredCustomers.map((customer, index) => (
                   <tr key={customer._id} className="hover:bg-slate-700/20 transition duration-150">
-                    <td className="py-4 px-6 font-medium text-slate-100">
+                    <td className="p-2 font-medium text-slate-400">{index + 1}</td>
+                    <td className="p-2 text-xs text-slate-100">
                       {customer.name}
                     </td>
-                    <td className="py-4 px-6 space-y-1">
+                    <td className="p-2 space-y-1">
                       <div className="flex items-center gap-1.5 text-xs text-slate-400">
                         <CreditCard className="w-3.5 h-3.5 text-indigo-400" /> {customer.cnic}
                       </div>
@@ -171,13 +173,13 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                         <Phone className="w-3.5 h-3.5 text-emerald-400" /> {customer.mobile}
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-slate-400 max-w-xs truncate">
+                    <td className="p-2 text-slate-400 max-w-xs">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                        <span className="truncate">{customer.address}</span>
+                        <span className=" text-xs">{customer.address}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-slate-400 text-xs">
+                    <td className="p-2 text-slate-400 text-xs">
                       {customer.guarantorName ? (
                         <span className="flex items-center gap-1 text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md w-fit border border-amber-500/20">
                           <UserCheck className="w-3 h-3" /> {customer.guarantorName}
@@ -186,25 +188,26 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                         <span className="text-slate-600">—</span>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-right flex justify-end gap-2">
+                    <td className="p-2 text-right flex justify-end gap-2">
+                      <Link 
+                        href={`/customers/${customer._id}`}
+                        className="text-xs cursor-pointer text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-1.5 rounded-md border border-indigo-500/20 transition"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </Link>
                       <button 
                         onClick={() => onEditClick(customer)}
-                        className="text-xs font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-lg border border-amber-500/20 transition"
+                        className="text-xs cursor-pointer text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1.5 rounded-md border border-amber-500/20 transition"
                       >
-                        Edit
+                        <Edit className="w-3 h-3" />
                       </button>
                       <button 
                         onClick={() => handleDelete(customer._id)}
-                        className="text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg border border-red-500/20 transition"
+                        className="text-xs cursor-pointer text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2 py-1.5 rounded-md border border-red-500/20 transition"
                       >
-                        Delete
+                        <Trash2 className="w-3 h-3" />
                       </button>
-                      <Link 
-                        href={`/customers/${customer._id}`}
-                        className="text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/20 transition"
-                      >
-                        Profile
-                      </Link>
+                      
                     </td>
                   </tr>
                 ))

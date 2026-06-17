@@ -6,14 +6,13 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// 1. GET METHOD: Saari invoices ya single invoice nikalne ke liye (With Customer & Product details populated)
+// 1. GET METHOD: Saari invoices ya single invoice nikalne ke liye
 export async function GET(request: Request) {
   try {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
-    // Models ko ensure karne ke liye ek baar touch kar lete hain taake Mongoose register rakhe
     const _c = Customer.modelName; 
     const _p = Product.modelName;
 
@@ -25,7 +24,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, data: invoice });
     }
 
-    // Saari invoices nikalte waqt populate ko check karein
     const invoices = await Invoice.find({})
       .populate("customer")
       .populate("product")
@@ -33,12 +31,11 @@ export async function GET(request: Request) {
       
     return NextResponse.json({ success: true, data: invoices });
   } catch (error: any) {
-    // Agar server par koi bhi issue aaye to error log saaf mile
     return NextResponse.json({ success: false, error: error.message || "Vercel Populate Error" }, { status: 500 });
   }
 }
 
-// 2. POST METHOD: Invoice generate karna + Stock auto-manage karna
+// 2. POST METHOD: Invoice generate karna + Stock auto-manage + 🗓️ INSTALLMENT SCHEDULE GENERATE
 export async function POST(request: Request) {
   try {
     await connectDB();
@@ -55,18 +52,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: "Product stock mein maujood nahi hai!" }, { status: 400 });
     }
 
-    // 🔥 AUTOMATIC CALCULATION LOGIC (As per your formula)
+    // AUTOMATIC CALCULATION LOGIC
     const sPrice = Number(salePrice);
     const dPayment = Number(downPayment || 0);
     const months = Number(durationMonths);
 
-    const remaining = sPrice - dPayment; // e.g., 100,000 - 20,000 = 80,000
-    const installment = Math.round(remaining / months); // e.g., 80,000 / 10 = 8,000
+    const remaining = sPrice - dPayment; 
+    const installment = Math.round(remaining / months); 
 
-    // Unique Invoice Number Generate karein (e.g., INV-1718292)
+    // Unique Invoice Number
     const invoiceNumber = `INV-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // Invoice create karein
+    // 🗓️ MODULE 4: SCHEDULE GENERATION LOGIC START
+    const installmentSchedule = [];
+    const currentDate = new Date(); // Aaj ki date se schedule shuru hoga
+
+    for (let i = 1; i <= months; i++) {
+      const dueDate = new Date();
+      // Har cycle mein 1 mahina agay barhein (Month 1, Month 2...)
+      dueDate.setMonth(currentDate.getMonth() + i);
+
+      // Handle Month Overflow (Agar aaj 31st hai aur agle mahine 30 din hain to crash na ho)
+      if (dueDate.getDate() !== currentDate.getDate()) {
+        dueDate.setDate(0); 
+      }
+
+      installmentSchedule.push({
+        installNo: i,
+        dueDate: dueDate,
+        amount: installment,
+        status: "Pending", // Default status sub kistoo ka pending hoga
+        paidDate: null
+      });
+    }
+    // 🗓️ SCHEDULE GENERATION LOGIC END
+
+    // Invoice create karein (With Installments Array)
     const newInvoice = await Invoice.create({
       invoiceNumber,
       customer: customerId,
@@ -76,17 +97,17 @@ export async function POST(request: Request) {
       remainingAmount: remaining,
       durationMonths: months,
       monthlyInstallment: installment,
+      installments: installmentSchedule, // 🔥 Database schema mein save ho raha hai
     });
 
     // 📦 Stock Management: Product ka stock 1 kam kar dein
     product.stock = product.stock - 1;
-    // totalCost ko bhi new stock ke mutabiq sync karein
     product.totalCost = product.costPrice * product.stock;
     await product.save();
 
     return NextResponse.json({ 
       success: true, 
-      message: "Invoice successfully generate ho gayi aur stock update ho gaya! 📄", 
+      message: "Invoice successfully generate ho gayi, stock kam ho gaya aur installment schedule ban gaya! 📄🗓️", 
       data: newInvoice 
     }, { status: 201 });
 

@@ -11,7 +11,7 @@ export default function Sidebar() {
 
   const menuItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Customers Directory", href: "/customers", icon: Users },
+    { name: "Manage Customers", href: "/customers", icon: Users },
     { name: "Product Stock", href: "/products", icon: Boxes },
     { name: "Installment Invoices", href: "/invoices", icon: FileText },
   ];
@@ -52,7 +52,7 @@ export default function Sidebar() {
               <Store className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-sm leading-tight text-white">Installment Pro</h2>
+              <h2 className=" text-sm text-white">Installment Pro</h2>
               <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">Management System</span>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 p-2 space-y-1.5 overflow-y-auto pt-4 md:pt-4">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -73,7 +73,7 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)} // Link click krte hi drawer automatic mobile pr band ho jaye
-                className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-all group ${
+                className={`flex items-center gap-2 p-2 rounded-md text-sm transition-all group ${
                   isActive
                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/10"
                     : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-100"

@@ -5,11 +5,16 @@ import { FilePlus, FileText } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import AddInvoiceModal from "@/components/AddInvoiceModal";
 import InvoiceTable from "@/components/InvoiceTable";
+import InvoiceDetails from "@/components/InvoiceDetails"; // 👈 1. Naya Details sliding panel link kiya
 
 export default function InvoicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // 🔥 2. Sliding Panel control karne ki states
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -34,30 +39,37 @@ export default function InvoicesPage() {
     <div className="min-h-screen bg-slate-900 text-slate-100 p-2">
       <Toaster position="top-center" />
 
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-2">
         
         {/* Top bar with Heading and Create Trigger Button */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-6 rounded-2xl border border-slate-800 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-2 rounded-md border border-slate-800 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-indigo-600/10 rounded-xl text-indigo-400 border border-indigo-500/20">
               <FileText className="w-6 h-6" />
             </div>
             <div>
               <h1 className="text-xl font-bold">Installment Invoice Center</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Shop ke ledger deals aur mahana kist records manage karein</p>
             </div>
           </div>
 
           <button 
             onClick={() => setIsModalOpen(true)} 
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition text-sm w-full sm:w-auto justify-center"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition text-sm w-full sm:w-auto justify-center"
           >
-            <FilePlus className="w-4 h-4" /> Naya Installment Bill Create Karein
+            <FilePlus className="w-4 h-4" />Create Installment
           </button>
         </div>
 
         {/* Live Filterable Ledger Invoice Table */}
-        <InvoiceTable invoices={invoices} loading={loading} />
+        {/* 👈 3. onViewClick handle pass kiya taake click track ho sake */}
+        <InvoiceTable 
+          invoices={invoices} 
+          loading={loading} 
+          onViewClick={(invoice) => {
+            setSelectedInvoice(invoice);
+            setIsDetailsOpen(true);
+          }}
+        />
 
       </div>
 
@@ -67,6 +79,21 @@ export default function InvoicesPage() {
         onClose={() => setIsModalOpen(false)} 
         onSuccess={fetchInvoices}
       />
+
+      {/* 🗓️ 4. Sliding Invoice Details Panel component */}
+      {isDetailsOpen && (
+        <InvoiceDetails
+          invoice={selectedInvoice}
+          onClose={() => {
+            setIsDetailsOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onRefresh={() => {
+            fetchInvoices(); // Kist jama hone par piche background list automatic sync hogi
+            setIsDetailsOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

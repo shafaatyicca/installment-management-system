@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Calendar, User, ShoppingBag, Banknote, DollarSign, Activity } from "lucide-react";
+import { Search, Calendar, User, ShoppingBag, Eye } from "lucide-react";
 
 interface InvoiceTableProps {
   invoices: any[];
   loading: boolean;
+  onViewClick: (invoice: any) => void;
 }
 
-export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
+export default function InvoiceTable({ invoices, loading, onViewClick }: InvoiceTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredInvoices = invoices.filter((inv) => {
@@ -30,7 +31,7 @@ export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
   }
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-2 w-full">
       {/* 🔍 Responsive Search Bar */}
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
@@ -43,7 +44,7 @@ export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
         />
       </div>
 
-      {/* 📱 1. MOBILE RESPONSIVE CARDS VIEW (md:hidden - Sirf mobile screens ke liye) */}
+      {/* 📱 1. MOBILE RESPONSIVE CARDS VIEW */}
       <div className="grid grid-cols-1 gap-3 md:hidden">
         {filteredInvoices.length === 0 ? (
           <div className="text-center py-8 text-xs text-slate-500 bg-slate-800/20 rounded-xl border border-slate-800">
@@ -53,7 +54,6 @@ export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
           filteredInvoices.map((inv, index) => (
             <div key={inv._id} className="bg-slate-800/50 border border-slate-800/80 p-4 rounded-xl space-y-3 shadow-md relative overflow-hidden">
               
-              {/* Card Header: Invoice Number, Serial, & Status */}
               <div className="flex justify-between items-center border-b border-slate-700/40 pb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded font-mono">#{index + 1}</span>
@@ -66,7 +66,6 @@ export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
                 </span>
               </div>
 
-              {/* Customer & Item Area */}
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
                   <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -78,7 +77,6 @@ export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
                 </div>
               </div>
 
-              {/* Financial Stats Breakdown (Grid Structure for small screens) */}
               <div className="grid grid-cols-2 gap-2 bg-slate-900/40 p-2.5 rounded-lg border border-slate-800 text-[11px]">
                 <div>
                   <p className="text-slate-500 text-[10px] font-medium uppercase">Sale Price</p>
@@ -98,10 +96,18 @@ export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
                 </div>
               </div>
 
-              {/* Bottom Duration Badge */}
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 pt-1">
-                <Calendar className="w-3 h-3 text-slate-500" />
-                <span>Plan Duration: <strong className="text-slate-300">{inv.durationMonths} Months</strong></span>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-800/40 mt-1">
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <Calendar className="w-3 h-3 text-slate-500" />
+                  <span>Plan: <strong className="text-slate-300">{inv.durationMonths} Months</strong></span>
+                </div>
+                
+                <button 
+                  onClick={() => onViewClick(inv)}
+                  className="text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-lg border border-indigo-500/10 transition flex items-center gap-1"
+                >
+                  <Eye className="w-3 h-3" /> View Installment
+                </button>
               </div>
 
             </div>
@@ -109,51 +115,60 @@ export default function InvoiceTable({ invoices, loading }: InvoiceTableProps) {
         )}
       </div>
 
-      {/* 🖥️ 2. DESKTOP VIEW TABLE (hidden md:block - Mobile par automatic hide ho jaye) */}
-      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl">
+      {/* 🖥️ 2. DESKTOP VIEW TABLE */}
+      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-md overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-700/60 bg-slate-800/60 text-slate-400 text-xs uppercase tracking-wider font-semibold">
-                <th className="py-4 px-6 w-16">S#</th>
-                <th className="py-4 px-6">Invoice #</th>
-                <th className="py-4 px-6">Customer / Item</th>
-                <th className="py-4 px-6">Sale Price</th>
-                <th className="py-4 px-6">Advance / Bal.</th>
-                <th className="py-4 px-6">Installment Deal</th>
-                <th className="py-4 px-6">Status</th>
+              <tr className="border-b border-slate-700/60 bg-slate-800/60 text-slate-400 text-xs uppercase">
+                <th className="p-2">S#</th>
+                <th className="p-2">Invoice #</th>
+                <th className="p-2">Customer / Item</th>
+                <th className="p-2">Sale Price</th>
+                <th className="p-2">Advance / Bal.</th>
+                <th className="p-2">Installment Deal</th>
+                <th className="p-2">Status</th>
+                <th className="p-2 text-right pr-4">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-sm text-slate-200">
               {filteredInvoices.map((inv, index) => (
                 <tr key={inv._id} className="hover:bg-slate-700/20 transition duration-150">
-                  <td className="py-4 px-6 font-medium text-slate-400">{index + 1}</td>
-                  <td className="py-4 px-6 font-bold text-indigo-400 uppercase tracking-wider">{inv.invoiceNumber}</td>
-                  <td className="py-4 px-6 space-y-1">
-                    <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
+                  <td className="p-2 font-medium text-slate-400">{index + 1}</td>
+                  <td className="p-2 text-indigo-400 uppercase text-xs">{inv.invoiceNumber}</td>
+                  <td className="p-2 space-y-1">
+                    <div className="flex items-center gap-1.5 text-sm text-slate-100">
                       <User className="w-3.5 h-3.5 text-slate-400" /> {inv.customer?.name || "Deleted"}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-slate-400">
                       <ShoppingBag className="w-3.5 h-3.5 text-indigo-400" /> {inv.product?.name || "Deleted"}
                     </div>
                   </td>
-                  <td className="py-4 px-6 font-semibold text-slate-200">Rs. {inv.salePrice.toLocaleString()}</td>
-                  <td className="py-4 px-6 space-y-0.5">
+                  <td className="p-2 text-slate-200 text-xs">Rs. {inv.salePrice.toLocaleString()}</td>
+                  <td className="p-2 space-y-0.5">
                     <div className="text-xs text-emerald-400">Adv: Rs. {inv.downPayment.toLocaleString()}</div>
-                    <div className="text-xs text-amber-400 font-medium">Rem: Rs. {inv.remainingAmount.toLocaleString()}</div>
+                    <div className="text-xs text-amber-400">Rem: Rs. {inv.remainingAmount.toLocaleString()}</div>
                   </td>
-                  <td className="py-4 px-6 space-y-0.5">
-                    <div className="font-semibold text-slate-200">Rs. {inv.monthlyInstallment.toLocaleString()} / Mo</div>
+                  <td className="p-2 space-y-0.5">
+                    <div className=" text-slate-200 text-xs">Rs. {inv.monthlyInstallment.toLocaleString()}</div>
                     <div className="text-xs text-slate-400 flex items-center gap-1">
                       <Calendar className="w-3 h-3" /> {inv.durationMonths} Months
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider border ${
+                  <td className="p-2">
+                    <span className={`p-1 rounded-md text-xs uppercase border ${
                       inv.status === "Active" ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                     }`}>
                       {inv.status}
                     </span>
+                  </td>
+                  <td className="p-2 text-right pr-4">
+                    <button
+                      onClick={() => onViewClick(inv)}
+                      className="text-xs text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 p-1 rounded-md border border-indigo-500/20 transition inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> View Installment
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -42,20 +42,19 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6">
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-2">
       <Toaster position="top-center" />
 
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-2">
         
         {/* Top bar with Heading and Trigger Button */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-6 rounded-2xl border border-slate-800 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-2 rounded-md border border-slate-800 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-indigo-600/10 rounded-xl text-indigo-400 border border-indigo-500/20">
               <Boxes className="w-6 h-6" />
             </div>
             <div>
               <h1 className="text-xl font-bold">Product Stock Directory</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Apne shop ka stock aur rates manage karein</p>
             </div>
           </div>
 
@@ -63,7 +62,7 @@ export default function ProductsPage() {
             onClick={() => { setSelectedProduct(null); setIsModalOpen(true); }} 
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition text-sm w-full sm:w-auto justify-center"
           >
-            <PackagePlus className="w-4 h-4" /> Naya Product Add Karein
+            <PackagePlus className="w-4 h-4" /> Add Product
           </button>
         </div>
 

@@ -25,7 +25,7 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleDelete = async (id: string) => {
-    if (confirm("Kya aap waqai is product ko stock se hamesha ke liye delete karna chahte hain?")) {
+    if (confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
       try {
         const response = await fetch(`/api/products?id=${id}`, {
           method: "DELETE",
@@ -33,13 +33,13 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
         const data = await response.json();
 
         if (data.success) {
-          toast.success("Product successfully delete ho gaya! 🗑️");
+          toast.success("Pruduct successfully deleted.");
           if (onSuccess) onSuccess(); 
         } else {
-          toast.error(data.message || "Delete nahi ho saka");
+          toast.error(data.message || "Delete failed, please try again.");
         }
       } catch (error) {
-        toast.error("Network issue, dubara koshish karein.");
+        toast.error("Network issue, try again later.");
       }
     }
   };
@@ -62,7 +62,7 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
   }
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-2 w-full">
       {/* 🔍 Responsive Search Input */}
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
@@ -144,26 +144,26 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
       </div>
 
       {/* 🖥️ 2. DESKTOP VIEW TABLE (hidden md:block - Desktop par khud-ba-khud table show ho jaye) */}
-      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl">
+      <div className="hidden md:block w-full bg-slate-800/40 border border-slate-800 backdrop-blur-md rounded-md overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-700/60 bg-slate-800/60 text-slate-400 text-xs uppercase tracking-wider font-semibold">
-                <th className="py-4 px-6 w-16">S#</th>
-                <th className="py-4 px-6">Product Details</th>
-                <th className="py-4 px-6">Brand / Model</th>
-                <th className="py-4 px-6">Unit Cost</th>
-                <th className="py-4 px-6">Stock Status</th>
-                <th className="py-4 px-6">Total Cost</th>
-                <th className="py-4 px-6 text-center">Actions</th>
+              <tr className="border-b border-slate-700/60 bg-slate-800/60 text-slate-400 text-xs uppercase">
+                <th className="p-2">S#</th>
+                <th className="p-2">Product Details</th>
+                <th className="p-2">Brand / Model</th>
+                <th className="p-2">Unit Cost</th>
+                <th className="p-2">Stock Status</th>
+                <th className="p-2">Total</th>
+                <th className="p-2 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-sm text-slate-200">
               {filteredProducts.map((product, index) => (
                 <tr key={product._id} className="hover:bg-slate-700/20 transition duration-150">
-                  <td className="py-4 px-6 font-medium text-slate-400">{index + 1}</td>
-                  <td className="py-4 px-6 font-medium text-slate-100">{product.name}</td>
-                  <td className="py-4 px-6 space-y-1">
+                  <td className="p-2 font-medium text-slate-400">{index + 1}</td>
+                  <td className="p-2 text-slate-100 text-xs">{product.name}</td>
+                  <td className="p-2 space-y-1">
                     <div className="flex items-center gap-1.5 text-xs text-slate-400">
                       <Tag className="w-3.5 h-3.5 text-indigo-400" /> {product.brand || "—"}
                     </div>
@@ -171,32 +171,32 @@ export default function ProductTable({ products, loading, onEditClick, onSuccess
                       <div className="text-xs text-slate-500 pl-5">Model: {product.modelNumber}</div>
                     )}
                   </td>
-                  <td className="py-4 px-6 font-medium text-slate-300">Rs. {product.costPrice.toLocaleString()}</td>
-                  <td className="py-4 px-6">
+                  <td className="p-2 text-xs text-slate-300">Rs. {product.costPrice.toLocaleString()}</td>
+                  <td className="p-2">
                     <div className="flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-slate-500" />
-                      <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
+                      <span className={`px-2 py-0.5 rounded-md text-xs ${
                         product.stock > 0 ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
                       }`}>
                         {product.stock > 0 ? `${product.stock} Items` : "Out of Stock"}
                       </span>
                     </div>
                   </td>
-                  <td className="py-4 px-6 font-semibold text-emerald-400">
+                  <td className="p-2 text-xs text-emerald-400">
                     Rs. {(product.totalCost || (product.costPrice * product.stock)).toLocaleString()}
                   </td>
-                  <td className="py-4 px-6 text-right space-x-2">
+                  <td className="p-2 text-right space-x-2">
                     <button 
                       onClick={() => onEditClick(product)}
-                      className="text-xs font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1.5 rounded-lg border border-amber-500/20 transition inline-flex items-center gap-1"
+                      className="text-xs text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1.5 rounded-lg border border-amber-500/20 transition inline-flex items-center gap-1"
                     >
-                      <Edit className="w-3 h-3" /> Edit
+                      <Edit className="w-3 h-3" />
                     </button>
                     <button 
                       onClick={() => handleDelete(product._id)}
-                      className="text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1.5 rounded-lg border border-red-500/20 transition inline-flex items-center gap-1"
+                      className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1.5 rounded-lg border border-red-500/20 transition inline-flex items-center gap-1"
                     >
-                      <Trash2 className="w-3 h-3" /> Delete
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </td>
                 </tr>

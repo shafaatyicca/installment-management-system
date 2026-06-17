@@ -1,5 +1,30 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
+// 🗓️ Sub-Schema for Installment Schedule
+const InstallmentScheduleSchema = new Schema({
+  installNo: {
+    type: Number,
+    required: true,
+  },
+  dueDate: {
+    type: Date,
+    required: true,
+  },
+  amount: {
+    type: Number,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["Pending", "Paid", "Overdue"],
+    default: "Pending",
+  },
+  paidDate: {
+    type: Date,
+    default: null,
+  },
+});
+
 const InvoiceSchema = new Schema(
   {
     invoiceNumber: {
@@ -48,6 +73,9 @@ const InvoiceSchema = new Schema(
       enum: ["Active", "Completed", "Defaulted"],
       default: "Active",
     },
+    // 🔥 Module 4: Automatically generated schedule yahan save hoga
+    installments: [InstallmentScheduleSchema],
+    
     saleDate: {
       type: Date,
       default: Date.now,
@@ -56,6 +84,7 @@ const InvoiceSchema = new Schema(
   { timestamps: true }
 );
 
+// Next.js hot reloading ke issues se bachne ke liye model cache clear handle kiya hai
 if (models.Invoice) {
   delete models.Invoice;
 }

@@ -58,48 +58,48 @@ export default function AddProductModal({ isOpen, onClose, onSuccess, productDat
       const resData = await response.json();
 
       if (resData.success) {
-        toast.success(isEditMode ? "Product successfully update ho gaya! 📝" : "Product stock mein add ho gaya! 📦");
+        toast.success(isEditMode ? "Update Product successfully!" : "Add Product stock successfully!");
         onClose();
         if (onSuccess) onSuccess();
       } else {
-        toast.error(resData.message || "Kuch galat hua!");
+        toast.error(resData.message || "Something went wrong, Try again.");
       }
     } catch (error) {
-      toast.error("Network issue, dubara koshish karein.");
+      toast.error("Network issue, Try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2">
       <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] z-10 text-slate-100">
+      <div className="relative w-full max-w-2xl bg-slate-800 border border-slate-700 rounded-md shadow-2xl overflow-y-auto max-h-[90vh] z-10 text-slate-100">
         
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-2 border-b border-slate-700">
           <h2 className="text-xl font-bold flex items-center gap-2 text-indigo-400">
             {isEditMode ? <Edit3 className="w-5 h-5" /> : <PackagePlus className="w-5 h-5" />} 
-            {isEditMode ? "Product Details Edit Karein" : "Naya Product Stock mein Add Karein"}
+            {isEditMode ? "Edit Product Details" : "Add Product Stock"}
           </h2>
           <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Name */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-slate-400 mb-1">Product Ka Naam *</label>
-              <input { ...register("name") } placeholder="e.g., Haier Refrigerator 12 cu ft" className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Product Naam *</label>
+              <input { ...register("name") } placeholder="e.g., Haier Refrigerator" className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition text-sm" />
               {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
             </div>
 
             {/* Cost Price */}
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Khareed Qeemat (Cost Price) *</label>
-              <input type="number" { ...register("costPrice") } placeholder="Rs. Jo aap ne invest ki" className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Cost Price *</label>
+              <input type="number" { ...register("costPrice") } placeholder="unit price" className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition text-sm" />
               {errors.costPrice && <p className="text-red-400 text-xs mt-1">{errors.costPrice.message}</p>}
             </div>
 
@@ -124,7 +124,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess, productDat
 
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+          <div className="flex justify-end gap-3 pt-2 border-t border-slate-700">
             <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 transition text-sm font-medium">Cancel</button>
             <button type="submit" disabled={loading} className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-lg shadow-indigo-600/20 transition disabled:opacity-50 text-sm">
               {loading ? "Saving..." : isEditMode ? "Update Stock" : "Save Product"}

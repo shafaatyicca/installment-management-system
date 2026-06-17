@@ -75,26 +75,26 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess, customerD
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2">
       <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-3xl bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] z-10 text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-3xl bg-slate-800 border border-slate-700 rounded-md shadow-2xl overflow-y-auto max-h-[90vh] z-10 text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-2 border-b border-slate-700">
           <h2 className="text-xl font-bold flex items-center gap-2 text-indigo-400">
             {isEditMode ? <Edit2 className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />} 
-            {isEditMode ? "Customer Edit Karein" : "Naya Customer Register Karein"}
+            {isEditMode ? "Edit Customer" : "Register New Customer"}
           </h2>
           <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">Customer Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Mukammal Naam *</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1">Customer Name *</label>
                 <input {...register("name")} className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition text-sm" />
                 {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
               </div>
@@ -109,7 +109,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess, customerD
                 {errors.mobile && <p className="text-red-400 text-xs mt-1">{errors.mobile.message}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Mukammal Pata *</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1">Customer Address *</label>
                 <input {...register("address")} className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition text-sm" />
                 {errors.address && <p className="text-red-400 text-xs mt-1">{errors.address.message}</p>}
               </div>
@@ -118,11 +118,11 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess, customerD
 
           <div className="pt-4 border-t border-slate-700">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
-              <ShieldAlert className="w-4 h-4 text-amber-500" /> Guarantor / Zameen <span className="text-xs text-slate-500 lowercase font-normal">(Optional)</span>
+              <ShieldAlert className="w-4 h-4 text-amber-500" /> Guarantor <span className="text-xs text-slate-500 lowercase font-normal">(Optional)</span>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Guarantor Naam</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1">Guarantor Name</label>
                 <input {...register("guarantorName")} className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition text-sm" />
               </div>
               <div>
@@ -136,7 +136,7 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess, customerD
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+          <div className="flex justify-end gap-3 pt-2 border-t border-slate-700">
             <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 transition text-sm font-medium">Cancel</button>
             <button type="submit" disabled={loading} className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-lg shadow-indigo-600/20 transition disabled:opacity-50 text-sm">
               {loading ? "Saving..." : isEditMode ? "Update Changes" : "Save Customer"}
