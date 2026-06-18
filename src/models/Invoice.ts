@@ -1,6 +1,5 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
-// 🗓️ Sub-Schema for Installment Schedule
 const InstallmentScheduleSchema = new Schema({
   installNo: {
     type: Number,
@@ -25,6 +24,30 @@ const InstallmentScheduleSchema = new Schema({
   },
 });
 
+// 🔥 Naya Sub-Schema Multiple Products ke cart ke liye
+const InvoiceProductSchema = new Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: [true, "Product ID lazmi hai"],
+  },
+  name: {
+    type: String, // Dynamic reference loss na ho isliye safe-side name backup rakh rahe hain
+    required: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: [1, "Quantity kam az kam 1 honi chahiye"],
+    default: 1,
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: [0, "Price 0 se kam nahi ho sakti"],
+  }
+});
+
 const InvoiceSchema = new Schema(
   {
     invoiceNumber: {
@@ -37,12 +60,16 @@ const InvoiceSchema = new Schema(
       ref: "Customer",
       required: [true, "Customer select karna lazmi hai"],
     },
-    product: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-      required: [true, "Product select karna lazmi hai"],
+    products: {
+      type: [InvoiceProductSchema],
+      validate: {
+        validator: function (v: any[]) {
+          return v && v.length > 0;
+        },
+        message: "Kam az kam ek product select karna lazmi hai",
+      },
     },
-    // Yeh woh price hai jo aap customer ko is deal mein bech rahe hain (Profit daal kar)
+
     salePrice: {
       type: Number,
       required: [true, "Sale Price lazmi hai"],
@@ -61,19 +88,23 @@ const InvoiceSchema = new Schema(
     durationMonths: {
       type: Number,
       required: [true, "Duration (Months) lazmi hain"],
-      min: [1, "Duration kam se kam 1 mahina honi chahiye"],
+      default: 0,
     },
     monthlyInstallment: {
       type: Number,
       required: true,
       default: 0,
     },
+    saleType: {
+      type: String,
+      enum: ["Cash", "Installment"],
+      default: "Installment",
+    },
     status: {
       type: String,
       enum: ["Active", "Completed", "Defaulted"],
       default: "Active",
     },
-    // 🔥 Module 4: Automatically generated schedule yahan save hoga
     installments: [InstallmentScheduleSchema],
     
     saleDate: {
@@ -84,7 +115,6 @@ const InvoiceSchema = new Schema(
   { timestamps: true }
 );
 
-// Next.js hot reloading ke issues se bachne ke liye model cache clear handle kiya hai
 if (models.Invoice) {
   delete models.Invoice;
 }

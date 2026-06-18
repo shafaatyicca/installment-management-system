@@ -40,7 +40,6 @@ export default function InvoicesPage() {
       <Toaster position="top-center" />
 
       <div className="max-w-6xl mx-auto space-y-2">
-        
         {/* Top bar with Heading and Create Trigger Button */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-2 rounded-md border border-slate-800 backdrop-blur-md">
           <div className="flex items-center gap-3">
@@ -52,35 +51,31 @@ export default function InvoicesPage() {
             </div>
           </div>
 
-          <button 
-            onClick={() => setIsModalOpen(true)} 
+          <button
+            onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition text-sm w-full sm:w-auto justify-center"
           >
-            <FilePlus className="w-4 h-4" />Create Installment
+            <FilePlus className="w-4 h-4" />
+            Create Installment
           </button>
         </div>
 
-        {/* Live Filterable Ledger Invoice Table */}
-        {/* 👈 3. onViewClick handle pass kiya taake click track ho sake */}
-        <InvoiceTable 
-          invoices={invoices} 
-          loading={loading} 
+        <InvoiceTable
+          invoices={invoices}
+          loading={loading}
           onViewClick={(invoice) => {
             setSelectedInvoice(invoice);
             setIsDetailsOpen(true);
           }}
         />
-
       </div>
 
-      {/* Shared Full Functional Auto Calculation Create Invoice Modal */}
-      <AddInvoiceModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <AddInvoiceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSuccess={fetchInvoices}
       />
 
-      {/* 🗓️ 4. Sliding Invoice Details Panel component */}
       {isDetailsOpen && (
         <InvoiceDetails
           invoice={selectedInvoice}
@@ -88,9 +83,25 @@ export default function InvoicesPage() {
             setIsDetailsOpen(false);
             setSelectedInvoice(null);
           }}
-          onRefresh={() => {
-            fetchInvoices(); // Kist jama hone par piche background list automatic sync hogi
-            setIsDetailsOpen(false);
+          onRefresh={async () => {
+            setLoading(true);
+            try {
+              const response = await fetch("/api/invoices");
+              const resData = await response.json();
+              if (resData.success) {
+                setInvoices(resData.data);
+                const updatedInvoice = resData.data.find(
+                  (inv: any) => inv._id === selectedInvoice._id,
+                );
+                if (updatedInvoice) {
+                  setSelectedInvoice(updatedInvoice);
+                }
+              }
+            } catch (error) {
+              console.error("Refresh failed", error);
+            } finally {
+              setLoading(false);
+            }
           }}
         />
       )}
