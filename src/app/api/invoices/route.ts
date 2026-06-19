@@ -4,6 +4,9 @@ import Invoice from "@/models/Invoice";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 
+void Customer;
+void Product;
+
 export const dynamic = "force-dynamic";
 
 // Helper 1: Number ko 3-digit format (001, 002) mein convert karne ke liye
@@ -32,9 +35,7 @@ async function getLatestReceiptNumber(): Promise<number> {
   return highestReceiptNum + 1;
 }
 
-// ==========================================================
 // 1. GET METHOD: Saari invoices ya single invoice load karne ke liye
-// ==========================================================
 export async function GET(request: Request) {
   try {
     await connectDB();
@@ -60,9 +61,7 @@ export async function GET(request: Request) {
   }
 }
 
-// ==========================================================
 // 2. POST METHOD: Multi-Product Invoice Create Engine
-// ==========================================================
 export async function POST(request: Request) {
   try {
     await connectDB();
@@ -247,9 +246,7 @@ export async function POST(request: Request) {
   }
 }
 
-// ==========================================================
 // 3. PUT METHOD: Kist (Installment) Pay Karne Ke Liye
-// ==========================================================
 export async function PUT(request: Request) {
   try {
     await connectDB();
