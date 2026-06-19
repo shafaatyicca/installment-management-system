@@ -135,7 +135,7 @@ const handlePrintReceipt = (inst: Installment) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 animate-fade-in">
       {/* Backdrop overlay */}
-      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm [transform:translateZ(0)] backface-visibility-hidden [will-change:transform]" onClick={onClose} />
 
       {/* Center Popup Container */}
       <div className="relative w-full max-w-2xl max-h-[85vh] bg-slate-800 border border-slate-700/60 shadow-2xl flex flex-col z-10 rounded-md overflow-hidden animate-scale-up [transform:translateZ(0)] backface-visibility-hidden [will-change:transform]">
