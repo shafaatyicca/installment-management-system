@@ -6,15 +6,40 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// 1. GET METHOD: Saari invoices ya single invoice nikalne ke liye (With Array Populate)
+// Helper 1: Number ko 3-digit format (001, 002) mein convert karne ke liye
+function formatToThreeDigits(num: number): string {
+  return num.toString().padStart(3, '0');
+}
+
+// 🔥 Helper 2: Puraay DB se fresh aur highest Receipt Number nikalne ka single solution
+async function getLatestReceiptNumber(): Promise<number> {
+  const allInvoices = await Invoice.find({});
+  let highestReceiptNum = 0;
+  
+  allInvoices.forEach((inv) => {
+    if (inv.installments && Array.isArray(inv.installments)) {
+      inv.installments.forEach((inst: any) => {
+        if (inst.receiptNumber && inst.receiptNumber.startsWith("REC-")) {
+          const rNum = parseInt(inst.receiptNumber.replace("REC-", ""), 10);
+          if (!isNaN(rNum) && rNum > highestReceiptNum) {
+            highestReceiptNum = rNum;
+          }
+        }
+      });
+    }
+  });
+  
+  return highestReceiptNum + 1;
+}
+
+// ==========================================================
+// 1. GET METHOD: Saari invoices ya single invoice load karne ke liye
+// ==========================================================
 export async function GET(request: Request) {
   try {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-
-    const _c = Customer.modelName; 
-    const _p = Product.modelName;
 
     if (id) {
       const invoice = await Invoice.findById(id).populate("customer").populate("products.product");
@@ -31,11 +56,13 @@ export async function GET(request: Request) {
       
     return NextResponse.json({ success: true, data: invoices });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || "Vercel Populate Error" }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || "Server Error" }, { status: 500 });
   }
 }
 
-// 2. POST METHOD: Multi-Product Invoice Engine + Dynamic Stock Management
+// ==========================================================
+// 2. POST METHOD: Multi-Product Invoice Create Engine
+// ==========================================================
 export async function POST(request: Request) {
   try {
     await connectDB();
@@ -53,13 +80,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: "Installment plan ke liye Months lazmi hain." }, { status: 400 });
     }
 
-    let calculatedSalePrice = 0;
-
+    // Stock verification Aur AUTOMATIC NAME FIX
     for (const item of products) {
-      if (!item.product || !item.quantity || item.quantity < 1 || !item.price) {
-        return NextResponse.json({ success: false, message: "Product data complete nahi hai!" }, { status: 400 });
-      }
-
       const dbProduct = await Product.findById(item.product);
       if (!dbProduct) {
         return NextResponse.json({ success: false, message: `Product database mein nahi mila!` }, { status: 404 });
@@ -67,10 +89,11 @@ export async function POST(request: Request) {
       if (dbProduct.stock < item.quantity) {
         return NextResponse.json({ 
           success: false, 
-          message: `"${item.name || dbProduct.name}" ka stock kam hai! Available stock: ${dbProduct.stock}` 
+          message: `"${item.name || dbProduct.name}" ka stock kam hai! Available: ${dbProduct.stock}` 
         }, { status: 400 });
       }
-      calculatedSalePrice += Number(item.price) * Number(item.quantity);
+
+      item.name = dbProduct.name;
     }
 
     const sPrice = Number(salePrice || 0);
@@ -79,47 +102,108 @@ export async function POST(request: Request) {
     const remaining = isCashSale ? 0 : (sPrice - dPayment);
     const installment = isCashSale ? 0 : Number(finalMonthlyInstallment || 0);
 
-    const invoiceNumber = `INV-${Math.floor(100000 + Math.random() * 900000)}`;
+    // SEQUENCE INVOICE NUMBER LOGIC
+    const lastInvoice = await Invoice.findOne({}).sort({ createdAt: -1 });
+    let nextInvoiceNumber = 1;
+
+    if (lastInvoice && lastInvoice.invoiceNumber) {
+      const lastNum = parseInt(lastInvoice.invoiceNumber.replace("INV-", ""), 10);
+      if (!isNaN(lastNum)) {
+        nextInvoiceNumber = lastNum + 1;
+      }
+    }
+
+    // 🔥 Get fresh receipt number sequence from helper function
+    let nextReceiptNumber = await getLatestReceiptNumber();
+
+    const invoiceNumber = `INV-${formatToThreeDigits(nextInvoiceNumber)}`;
     const installmentSchedule = [];
+    let advanceReceiptData = null;
 
     if (isCashSale) {
+      const cashReceiptNo = `REC-${formatToThreeDigits(nextReceiptNumber)}`;
+      
       installmentSchedule.push({
         installNo: 1,
         dueDate: new Date(),
         amount: sPrice,
-        status: "Pending",
-        paidDate: null
+        status: "Paid",
+        paidDate: new Date(),
+        receiptNumber: cashReceiptNo,
+        amountPaid: sPrice,
+        remainingAfterThis: 0,
       });
-    } else if (months > 0) {
-      const currentDate = new Date();
-      // 🟢 FIXED: Pehle 1 se lekar last month tak bache huwe paise track karne ke liye variable
-      let accumulatedAmount = 0;
 
-      for (let i = 1; i <= months; i++) {
-        const dueDate = new Date();
-        dueDate.setMonth(currentDate.getMonth() + i);
+      advanceReceiptData = {
+        receiptNumber: cashReceiptNo,
+        amountReceived: sPrice,
+        remainingBalance: 0,
+        paidDate: new Date().toLocaleString("en-PK", { timeZone: "Asia/Karachi" }),
+        isAdvance: false,
+      };
 
-        if (dueDate.getDate() !== currentDate.getDate()) {
-          dueDate.setDate(0); 
+    } else {
+      const hasDownPayment = dPayment > 0;
+      let advReceiptNo = null;
+      
+      if (hasDownPayment) {
+        advReceiptNo = `REC-${formatToThreeDigits(nextReceiptNumber)}`;
+      }
+
+      installmentSchedule.push({
+        installNo: 0, 
+        dueDate: new Date(),
+        amount: dPayment,
+        status: hasDownPayment ? "Paid" : "Pending",
+        paidDate: hasDownPayment ? new Date() : null,
+        receiptNumber: advReceiptNo,
+        amountPaid: hasDownPayment ? dPayment : 0,
+        remainingAfterThis: remaining,
+      });
+
+      if (hasDownPayment) {
+        advanceReceiptData = {
+          receiptNumber: advReceiptNo,
+          amountReceived: dPayment,
+          remainingBalance: remaining,
+          paidDate: new Date().toLocaleString("en-PK", { timeZone: "Asia/Karachi" }),
+          isAdvance: true,
+        };
+      }
+
+      if (months > 0) {
+        let accumulatedAmount = 0;
+        let runningRemaining = remaining;
+
+        for (let i = 1; i <= months; i++) {
+          const dueDate = new Date();
+          dueDate.setMonth(dueDate.getMonth() + i);
+
+          if (dueDate.getDate() < new Date().getDate()) {
+            dueDate.setDate(0);
+          }
+
+          let currentKistAmount = 0;
+          if (i === months) {
+            currentKistAmount = remaining - accumulatedAmount;
+          } else {
+            currentKistAmount = installment;
+            accumulatedAmount += installment;
+          }
+
+          runningRemaining = runningRemaining - currentKistAmount;
+
+          installmentSchedule.push({
+            installNo: i,
+            dueDate: dueDate,
+            amount: currentKistAmount,
+            status: "Pending",
+            paidDate: null,
+            receiptNumber: null,
+            amountPaid: 0,
+            remainingAfterThis: Math.max(0, runningRemaining),
+          });
         }
-
-        let currentKistAmount = 0;
-
-        // 🟢 FIXED: Agar aakhri mahina hai to mathematical formula se balance zero karenge
-        if (i === months) {
-          currentKistAmount = remaining - accumulatedAmount;
-        } else {
-          currentKistAmount = installment;
-          accumulatedAmount += installment;
-        }
-
-        installmentSchedule.push({
-          installNo: i,
-          dueDate: dueDate,
-          amount: currentKistAmount, // 🟢 FIXED: Adjusted amount push hoga
-          status: "Pending",
-          paidDate: null
-        });
       }
     }
 
@@ -130,33 +214,120 @@ export async function POST(request: Request) {
       salePrice: sPrice,
       saleType: isCashSale ? "Cash" : "Installment", 
       downPayment: dPayment,
-      remainingAmount: remaining,
+      remainingAmount: remaining, 
+      dueAmount: remaining,       
       durationMonths: months,
       monthlyInstallment: installment,
       installments: installmentSchedule, 
-      status: "Active"
-    } as any;
+      status: isCashSale ? "Completed" : "Active"
+    };
 
     const newInvoice = await Invoice.create(invoicePayload);
 
     for (const item of products) {
       const dbProduct = await Product.findById(item.product);
       if (dbProduct) {
-        dbProduct.stock = dbProduct.stock - item.quantity;
-        dbProduct.totalCost = dbProduct.costPrice * dbProduct.stock;
+        dbProduct.stock = Math.max(0, dbProduct.stock - item.quantity);
+        const price = dbProduct.costPrice || 0;
+        dbProduct.totalCost = price * dbProduct.stock;
         await dbProduct.save();
       }
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: isCashSale 
-        ? "Cash Invoice successfully complete ho gayi aur stocks manage ho gaye!" 
-        : "Installment Invoice successfully generate ho gayi aur multi-product inventory lock ho gayi!", 
+      message: "Invoice successfully generate ho gayi!", 
+      advanceReceipt: advanceReceiptData, 
       data: newInvoice 
     }, { status: 201 });
 
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error("CRITICAL BACKEND ERROR:", error);
+    return NextResponse.json({ success: false, error: error.message || "Server Error" }, { status: 500 });
+  }
+}
+
+// ==========================================================
+// 3. PUT METHOD: Kist (Installment) Pay Karne Ke Liye
+// ==========================================================
+export async function PUT(request: Request) {
+  try {
+    await connectDB();
+    const { invoiceId, installmentId } = await request.json();
+
+    if (!invoiceId || !installmentId) {
+      return NextResponse.json(
+        { success: false, message: "Invoice ID aur Installment ID zaroori hain!" },
+        { status: 400 }
+      );
+    }
+
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+      return NextResponse.json(
+        { success: false, message: "Invoice record nahi mila." },
+        { status: 404 }
+      );
+    }
+
+    const targetInstallment = invoice.installments.id(installmentId);
+    if (!targetInstallment) {
+      return NextResponse.json(
+        { success: false, message: "Kist ka specific data array mein nahi mila!" },
+        { status: 404 }
+      );
+    }
+
+    if (targetInstallment.status === "Paid") {
+      return NextResponse.json(
+        { success: false, message: "Yeh kist pehle se hi Paid hai!" },
+        { status: 400 }
+      );
+    }
+
+    const kistAmount = targetInstallment.amount;
+
+    // 🔥 Call helper function directly instead of writing whole loop again
+    const nextReceiptNumber = await getLatestReceiptNumber();
+    const generatedReceiptNumber = `REC-${formatToThreeDigits(nextReceiptNumber)}`;
+
+    // Update specific installment status
+    targetInstallment.status = "Paid";
+    targetInstallment.paidDate = new Date();
+    targetInstallment.receiptNumber = generatedReceiptNumber;
+    targetInstallment.amountPaid = kistAmount;
+
+    // Fixed: remainingAmount static rahega, sirf live dueAmount minus hoga
+    invoice.dueAmount = Math.max(0, invoice.dueAmount - kistAmount);
+
+    // Check if all installments are paid
+    const totalInstallments = invoice.installments.length;
+    const paidInstallments = invoice.installments.filter(
+      (inst: any) => inst.status === "Paid"
+    ).length;
+
+    if (totalInstallments === paidInstallments) {
+      invoice.status = "Completed";
+    }
+
+    await invoice.save();
+
+    return NextResponse.json({
+      success: true,
+      message: "Kist successfully jama ho gayi aur raseed taiyar hai!",
+      receipt: {
+        receiptNumber: generatedReceiptNumber,
+        amountReceived: kistAmount,
+        remainingBalance: invoice.dueAmount,
+        paidDate: new Date().toLocaleString("en-PK", { timeZone: "Asia/Karachi" }),
+      },
+      data: invoice,
+    });
+
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, message: error.message || "Server error" },
+      { status: 500 }
+    );
   }
 }

@@ -1,5 +1,6 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
+// 1. HAR EK KIST KA APNA ALAG SCHEMA
 const InstallmentScheduleSchema = new Schema({
   installNo: {
     type: Number,
@@ -10,21 +11,34 @@ const InstallmentScheduleSchema = new Schema({
     required: true,
   },
   amount: {
-    type: Number,
+    type: Number, // Scheduled kist ki fix amount
     required: true,
   },
   status: {
     type: String,
-    enum: ["Pending", "Paid", "Overdue"],
+    enum: ["Pending", "Paid", "Overdue"], // Kist ka status sirf "Paid" ya "Pending" hoga
     default: "Pending",
   },
   paidDate: {
     type: Date,
     default: null,
   },
+  receiptNumber: {
+    type: String, // Unique raseed number (REC-123456)
+    default: null,
+  },
+  amountPaid: {
+    type: Number, // Asal mian kitne paise received huwe
+    default: 0,
+  },
+  // 🔥 FIELD 1: Puraani receipts print karne ke liye us specific month ka historical balance track karega
+  remainingAfterThis: {
+    type: Number,
+    default: 0,
+  }
 });
 
-// 🔥 Naya Sub-Schema Multiple Products ke cart ke liye
+// 2. CART KE PRODUCTS KA SCHEMA
 const InvoiceProductSchema = new Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
@@ -32,7 +46,7 @@ const InvoiceProductSchema = new Schema({
     required: [true, "Product ID lazmi hai"],
   },
   name: {
-    type: String, // Dynamic reference loss na ho isliye safe-side name backup rakh rahe hain
+    type: String, 
     required: true,
   },
   quantity: {
@@ -48,6 +62,7 @@ const InvoiceProductSchema = new Schema({
   }
 });
 
+// 3. MAIN INVOICE / DEAL KA MAIN SCHEMA
 const InvoiceSchema = new Schema(
   {
     invoiceNumber: {
@@ -69,7 +84,6 @@ const InvoiceSchema = new Schema(
         message: "Kam az kam ek product select karna lazmi hai",
       },
     },
-
     salePrice: {
       type: Number,
       required: [true, "Sale Price lazmi hai"],
@@ -81,6 +95,12 @@ const InvoiceSchema = new Schema(
       default: 0,
     },
     remainingAmount: {
+      type: Number,
+      required: true,
+      default: 0, // Yeh poori deal ka ORIGINAL static balance track karega
+    },
+    // 🔥 FIELD 2: Live current udhaar track karega jo payments ke sath kam hoga (Table/Modal crash issue fix)
+    dueAmount: {
       type: Number,
       required: true,
       default: 0,
@@ -100,12 +120,13 @@ const InvoiceSchema = new Schema(
       enum: ["Cash", "Installment"],
       default: "Installment",
     },
+    // Yeh poori deal ka status hai
     status: {
       type: String,
       enum: ["Active", "Completed", "Defaulted"],
       default: "Active",
     },
-    installments: [InstallmentScheduleSchema],
+    installments: [InstallmentScheduleSchema], // Kisto ki list yahan map hoti hai
     
     saleDate: {
       type: Date,
@@ -115,9 +136,6 @@ const InvoiceSchema = new Schema(
   { timestamps: true }
 );
 
-if (models.Invoice) {
-  delete models.Invoice;
-}
-
-const Invoice = model("Invoice", InvoiceSchema);
+// 🟢 NEXT.JS RELOADING CRASH FIX: Model ko check karne aur export karne ka sahi tareeqa
+const Invoice = models.Invoice || model("Invoice", InvoiceSchema);
 export default Invoice;

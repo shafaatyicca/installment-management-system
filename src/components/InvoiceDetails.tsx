@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { X, Calendar, User, ShoppingBag, CheckCircle, Clock, AlertTriangle, Printer } from "lucide-react";
 import toast from "react-hot-toast";
+// 🟢 STEP 1: Raseed wale component ko import karein (Path check kar lijiyega apne project ke mutabik)
+import ReceiptPrint from "./ReceiptPrint"; 
 
 interface Installment {
   _id: string;
@@ -11,6 +13,9 @@ interface Installment {
   amount: number;
   status: "Pending" | "Paid" | "Overdue";
   paidDate?: string | null;
+  receiptNumber?: string | null;
+  amountPaid?: number;
+  remainingAfterThis?: number;
 }
 
 interface InvoiceProductItem {
@@ -24,7 +29,7 @@ interface Invoice {
   _id: string;
   invoiceNumber: string;
   customer: { name: string; mobile: string };
-  products: InvoiceProductItem[]; // Updated to match array structure
+  products: InvoiceProductItem[];
   salePrice: number;
   downPayment: number;
   remainingAmount: number;
@@ -44,6 +49,10 @@ interface InvoiceDetailsProps {
 export default function InvoiceDetails({ invoice, onClose, onRefresh }: InvoiceDetailsProps) {
   const [payLoading, setPayLoading] = useState<string | null>(null);
   
+  // 🟢 STEP 2: Receipt Modal Control karne ki States
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [receiptData, setReceiptData] = useState<any>(null);
+
   // Custom Confirmation Modal States
   const [confirmModal, setConfirmModal] = useState<{ open: boolean; installmentId: string | null }>({
     open: false,
@@ -65,7 +74,7 @@ export default function InvoiceDetails({ invoice, onClose, onRefresh }: InvoiceD
     setPayLoading(installmentId);
 
     try {
-      const response = await fetch(`/api/take_payment`, {
+      const response = await fetch(`/api/invoices`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,6 +87,21 @@ export default function InvoiceDetails({ invoice, onClose, onRefresh }: InvoiceD
 
       if (data.success) {
         toast.success("Installment successfully marked as paid!");
+        
+        // 🟢 STEP 3: Payment hotay hi raseed data state mein save karke modal open karein
+        setReceiptData({
+          receiptNumber: data.receipt?.receiptNumber || `REC-${Math.floor(100000 + Math.random() * 900000)}`,
+          customerName: invoice.customer?.name || "Customer",
+          amountReceived: data.receipt?.amountReceived || invoice.monthlyInstallment,
+          remainingBalance: data.receipt?.remainingBalance ?? (invoice.remainingAmount - invoice.monthlyInstallment),
+          products: invoice.products.map(p => ({
+            name: p.name,
+            brand: typeof p.product === "object" ? p.product.brand : ""
+          })),
+          receivingDate: data.receipt?.paidDate || new Date().toLocaleString(),
+        });
+        setIsReceiptOpen(true);
+
         onRefresh();
       } else {
         toast.error(data.message || "Failed to update payment status");
@@ -89,9 +113,24 @@ export default function InvoiceDetails({ invoice, onClose, onRefresh }: InvoiceD
     }
   };
 
-  const handlePrintReceipt = (inst: Installment) => {
-    toast.success(`#${inst.installNo} ki receipt print ho rahi hai...`);
-  };
+  // 🟢 STEP 4: Purani paid kist ki raseed dubara open karne ka logic
+const handlePrintReceipt = (inst: Installment) => {
+  setReceiptData({
+    receiptNumber: inst.receiptNumber || "N/A",
+    customerName: invoice.customer?.name || "Customer",
+    amountReceived: inst.amountPaid || inst.amount,
+    
+    // 🔥 Puraane invoice.remainingAmount ko hata kar yeh line likhein:
+    remainingBalance: inst.remainingAfterThis ?? invoice.remainingAmount, 
+    
+    products: invoice.products.map(p => ({
+      name: p.name,
+      brand: typeof p.product === "object" ? (p.product as any).brand : ""
+    })),
+    receivingDate: inst.paidDate ? new Date(inst.paidDate).toLocaleString() : new Date().toLocaleString(),
+  });
+  setIsReceiptOpen(true);
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 animate-fade-in">
@@ -135,7 +174,6 @@ export default function InvoiceDetails({ invoice, onClose, onRefresh }: InvoiceD
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-slate-500 font-medium uppercase">Items Purchased</p>
                 
-                {/* 🟢 CHANGED: Multiple items dynamic listing handler array check */}
                 {invoice.products && invoice.products.length > 0 ? (
                   <div className="mt-1 space-y-1 max-h-20 overflow-y-auto scrollbar-none">
                     {invoice.products.map((item, idx) => (
@@ -199,13 +237,17 @@ export default function InvoiceDetails({ invoice, onClose, onRefresh }: InvoiceD
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
+                    <div className={`w-10 h-8 rounded-lg flex items-center justify-center font-mono text-[11px] font-bold shrink-0 ${
                       inst.status === "Paid" ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-800 text-slate-400"
                     }`}>
-                      #{inst.installNo}
+                      {/* 🟢 Agar installment number 0 ho to Advance text show karein */}
+                      {inst.installNo === 0 ? "ADV" : `#${inst.installNo}`}
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-200">Rs. {(inst.amount || 0).toLocaleString()}</p>
+                      <p className="text-xs font-bold text-slate-200">
+                        Rs. {(inst.amount || 0).toLocaleString()} 
+                        {inst.installNo === 0 && <span className="text-[10px] text-emerald-400 font-normal ml-1.5">(Down Payment)</span>}
+                      </p>
                       <p className="text-[11px] text-red-400 flex items-center gap-1 mt-0.5">
                         <Clock className="w-3 h-3" /> Due: {new Date(inst.dueDate).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}
                       </p>
@@ -295,6 +337,14 @@ export default function InvoiceDetails({ invoice, onClose, onRefresh }: InvoiceD
           </div>
         </div>
       )}
+
+      {/* 🟢 STEP 5: Receipt Print render wrapper node element placement at the bottom */}
+      <ReceiptPrint 
+        isOpen={isReceiptOpen} 
+        onClose={() => { setIsReceiptOpen(false); setReceiptData(null); }} 
+        data={receiptData} 
+      />
+
     </div>
   );
 }
