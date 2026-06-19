@@ -51,7 +51,7 @@ export default function InvoiceTable({ invoices, loading, onViewClick }: Invoice
           </div>
         ) : (
           filteredInvoices.map((inv, index) => (
-            <div key={inv._id} className="bg-slate-800/50 border border-slate-800/80 p-4 rounded-xl space-y-3 shadow-md relative overflow-hidden">
+            <div key={inv._id} className="bg-slate-800/50 border border-slate-800/80 p-4 rounded-xl space-y-3 shadow-md relative overflow-hidden [transform:translateZ(0)] backface-visibility-hidden [will-change:transform]">
               <div className="flex justify-between items-center border-b border-slate-700/40 pb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded font-mono">#{index + 1}</span>
