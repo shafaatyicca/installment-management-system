@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Users, Boxes, FileText, LayoutDashboard, Store, Menu, X } from "lucide-react";
+import { Users, Boxes, FileText, LayoutDashboard, Store, Menu, X, ScrollText, HandCoins, CalendarClock } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -14,6 +14,10 @@ export default function Sidebar() {
     { name: "Manage Customers", href: "/customers", icon: Users },
     { name: "Product Stock", href: "/products", icon: Boxes },
     { name: "Installment Invoices", href: "/invoices", icon: FileText },
+    { name: "Customer Ledger", href: "/customer-ledger", icon: ScrollText},
+    { name: "Collections", href: "/collection", icon: HandCoins},
+    { name: "Overdue Report", href: "/due", icon: CalendarClock},
+
   ];
 
   return (
@@ -72,7 +76,7 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setIsOpen(false)} // Link click krte hi drawer automatic mobile pr band ho jaye
+                onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-2 p-2 rounded-md text-sm transition-all group ${
                   isActive
                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/10"
