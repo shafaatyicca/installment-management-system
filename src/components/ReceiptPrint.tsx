@@ -8,9 +8,13 @@ interface ReceiptProps {
   onClose: () => void;
   data: {
     receiptNumber: string;
+    invoiceNumber: string;      // 🔥 Naya field
     customerName: string;
+    customerMobile: string;     // 🔥 Naya field
     amountReceived: number;
     remainingBalance: number;
+    installNo: number;          // 🔥 Naya field (e.g., 3)
+    durationMonths: number;     // 🔥 Naya field (e.g., 6)
     products: Array<{ name: string; brand?: string }>;
     receivingDate: string;
   };
@@ -78,16 +82,29 @@ export default function ReceiptPrint({ isOpen, onClose, data }: ReceiptProps) {
           {/* Receipt Info Meta */}
           <div className="grid grid-cols-2 gap-y-1.5 text-xs border-b border-slate-800 print:border-black pb-3">
             <div>
-              <p className="text-slate-500 print:text-gray-500 font-medium">Receipt No:</p>
-              <p className="font-mono font-bold text-slate-200 print:text-black">{data.receiptNumber}</p>
+              <p className="text-slate-500 print:text-gray-500 font-medium">Invoice / Receipt:</p>
+              <p className="font-mono font-bold text-slate-200 print:text-black">
+                {data.invoiceNumber} / <span className="text-indigo-400 print:text-black">{data.receiptNumber}</span>
+              </p>
             </div>
             <div className="text-right">
               <p className="text-slate-500 print:text-gray-500 font-medium">Date & Time:</p>
               <p className="font-mono font-medium text-slate-300 print:text-black">{data.receivingDate}</p>
             </div>
-            <div className="col-span-2 pt-1">
+            <div>
               <p className="text-slate-500 print:text-gray-500 font-medium">Customer Name:</p>
-              <p className="font-bold text-slate-200 print:text-black text-sm">{data.customerName}</p>
+              <p className="font-bold text-slate-200 print:text-black">{data.customerName}</p>
+              <p className="font-mono text-[11px] text-slate-400 print:text-gray-600">{data.customerMobile}</p>
+            </div>
+            <div className="text-right flex flex-col justify-end">
+              <p className="text-slate-500 print:text-gray-500 font-medium">Installment Status:</p>
+              <p className="font-bold text-indigo-400 print:text-black">
+                {data.installNo === 0 ? (
+                  "Advance Payment"
+                ) : (
+                  `Installment: ${data.installNo} out of ${data.durationMonths}`
+                )}
+              </p>
             </div>
           </div>
 

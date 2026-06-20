@@ -178,7 +178,7 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                         <span className=" text-xs">{customer.address}</span>
                       </div>
                     </td>
-                    <td className="p-2 text-slate-400 text-xs">
+                    <td className="p-2 text-slate-400 text-[10px]">
                       {customer.guarantorName ? (
                         <span className="flex items-center gap-1 text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md w-fit border border-amber-500/20">
                           <UserCheck className="w-3 h-3" /> {customer.guarantorName}
