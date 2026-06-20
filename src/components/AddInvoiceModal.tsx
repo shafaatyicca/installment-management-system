@@ -225,21 +225,25 @@ export default function AddInvoiceModal({
 
         // 🟢 AGAR BACKEND NE ADVANCE RASEED BHEJI HAI TO POPUP OPEN KAREIN
         if (resData.advanceReceipt) {
-          const selectedCustomer: any = customers.find((c: any) => c._id === customerId);
-          
-          setReceiptData({
-            receiptNumber: resData.advanceReceipt.receiptNumber,
-            customerName: selectedCustomer ? selectedCustomer.name : "Customer Record",
-            amountReceived: resData.advanceReceipt.amountReceived,
-            remainingBalance: resData.advanceReceipt.remainingBalance,
-            products: selectedCartItems.map((item) => ({
-              name: item.name,
-              brand: item.brand || "",
-            })),
-            receivingDate: resData.advanceReceipt.paidDate,
-          });
-          setIsReceiptOpen(true);
-        }
+  const selectedCustomer: any = customers.find((c: any) => c._id === customerId);
+  
+  setReceiptData({
+    receiptNumber: resData.advanceReceipt.receiptNumber,
+    invoiceNumber: resData.data?.invoiceNumber || "",
+    customerName: selectedCustomer ? selectedCustomer.name : "Customer Record",
+    customerMobile: selectedCustomer ? (selectedCustomer.phone || selectedCustomer.mobile || "") : "",
+    amountReceived: resData.advanceReceipt.amountReceived,
+    remainingBalance: resData.advanceReceipt.remainingBalance,
+    installNo: 0,
+    durationMonths: saleMode === "Cash" ? 0 : finalDurationMonths,
+    products: selectedCartItems.map((item) => ({
+      name: item.name,
+      brand: item.brand || "",
+    })),
+    receivingDate: resData.advanceReceipt.paidDate,
+  });
+  setIsReceiptOpen(true);
+}
 
         // Reset Input Fields
         setCustomerId("");

@@ -35,7 +35,34 @@ async function getLatestReceiptNumber(): Promise<number> {
   return highestReceiptNum + 1;
 }
 
+// 🔥 Helper 3: Har invoice ko check karke agar koi kist due date se overdue hai to "Defaulted" mark karo
+async function checkAndUpdateDefaultedStatus(invoice: any) {
+  // Sirf Active invoices ko check karna hai, Completed ya already Defaulted ko nahi
+  if (invoice.status !== "Active") return invoice;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const hasOverdueInstallment = invoice.installments?.some((inst: any) => {
+    if (inst.status === "Pending") {
+      const due = new Date(inst.dueDate);
+      due.setHours(0, 0, 0, 0);
+      return due < today;
+    }
+    return false;
+  });
+
+  if (hasOverdueInstallment) {
+    invoice.status = "Defaulted";
+    await invoice.save();
+  }
+
+  return invoice;
+}
+
+// ==========================================================
 // 1. GET METHOD: Saari invoices ya single invoice load karne ke liye
+// ==========================================================
 export async function GET(request: Request) {
   try {
     await connectDB();
@@ -47,13 +74,19 @@ export async function GET(request: Request) {
       if (!invoice) {
         return NextResponse.json({ success: false, message: "Invoice nahi mili" }, { status: 404 });
       }
-      return NextResponse.json({ success: true, data: invoice });
+      const updatedInvoice = await checkAndUpdateDefaultedStatus(invoice);
+      return NextResponse.json({ success: true, data: updatedInvoice });
     }
 
     const invoices = await Invoice.find({})
       .populate("customer")
       .populate("products.product")
       .sort({ createdAt: -1 });
+
+    // Har invoice ko check karein, koi overdue installment ho to Defaulted mark karein
+    for (const invoice of invoices) {
+      await checkAndUpdateDefaultedStatus(invoice);
+    }
       
     return NextResponse.json({ success: true, data: invoices });
   } catch (error: any) {
@@ -61,7 +94,9 @@ export async function GET(request: Request) {
   }
 }
 
+// ==========================================================
 // 2. POST METHOD: Multi-Product Invoice Create Engine
+// ==========================================================
 export async function POST(request: Request) {
   try {
     await connectDB();
@@ -142,25 +177,25 @@ export async function POST(request: Request) {
       };
 
     } else {
+      // 🔥 FIX (Problem 2): Sirf jab downPayment > 0 ho tabhi advance installment entry banegi.
+      // Pehle yeh push() unconditionally chalta tha jisse downPayment=0 par bhi
+      // ek dummy "installNo: 0, amount: 0, status: Pending" entry ban jati thi.
       const hasDownPayment = dPayment > 0;
-      let advReceiptNo = null;
-      
-      if (hasDownPayment) {
-        advReceiptNo = `REC-${formatToThreeDigits(nextReceiptNumber)}`;
-      }
-
-      installmentSchedule.push({
-        installNo: 0, 
-        dueDate: new Date(),
-        amount: dPayment,
-        status: hasDownPayment ? "Paid" : "Pending",
-        paidDate: hasDownPayment ? new Date() : null,
-        receiptNumber: advReceiptNo,
-        amountPaid: hasDownPayment ? dPayment : 0,
-        remainingAfterThis: remaining,
-      });
 
       if (hasDownPayment) {
+        const advReceiptNo = `REC-${formatToThreeDigits(nextReceiptNumber)}`;
+
+        installmentSchedule.push({
+          installNo: 0,
+          dueDate: new Date(),
+          amount: dPayment,
+          status: "Paid",
+          paidDate: new Date(),
+          receiptNumber: advReceiptNo,
+          amountPaid: dPayment,
+          remainingAfterThis: remaining,
+        });
+
         advanceReceiptData = {
           receiptNumber: advReceiptNo,
           amountReceived: dPayment,
@@ -246,7 +281,9 @@ export async function POST(request: Request) {
   }
 }
 
+// ==========================================================
 // 3. PUT METHOD: Kist (Installment) Pay Karne Ke Liye
+// ==========================================================
 export async function PUT(request: Request) {
   try {
     await connectDB();
@@ -305,6 +342,22 @@ export async function PUT(request: Request) {
 
     if (totalInstallments === paidInstallments) {
       invoice.status = "Completed";
+    } else {
+      // 🔥 FIX (Problem 1): Agar koi aur installment ab bhi overdue (Pending + dueDate guzar gayi) hai
+      // to status "Defaulted" rakho, warna wapas "Active" kar do (jab overdue wali kist abhi pay hui ho).
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const stillHasOverdue = invoice.installments.some((inst: any) => {
+        if (inst.status === "Pending") {
+          const due = new Date(inst.dueDate);
+          due.setHours(0, 0, 0, 0);
+          return due < today;
+        }
+        return false;
+      });
+
+      invoice.status = stillHasOverdue ? "Defaulted" : "Active";
     }
 
     await invoice.save();

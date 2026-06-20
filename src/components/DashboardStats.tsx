@@ -66,7 +66,7 @@ const statsData = [
 
 export default function DashboardStats() {
   return (
-    <div className="w-full space-y-4 p-4 sm:p-6 bg-slate-950 min-h-screen text-slate-100">
+    <div className="w-full space-y-4 p-2 sm:p-4 bg-slate-950 min-h-screen text-slate-100">
       
       {/* Header Section */}
       <div className="flex flex-col gap-1 border-b border-slate-800 pb-4">
