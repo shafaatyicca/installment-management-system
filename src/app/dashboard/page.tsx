@@ -87,7 +87,7 @@ export default function DashboardPage() {
       color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
     },
     {
-      title: "Total Receivable",
+      title: "Total Pending",
       value: data?.totalReceivable,
       icon: DollarSign,
       color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
@@ -101,11 +101,11 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="w-full space-y-5 p-2 sm:p-6 bg-slate-900 text-slate-100">
+    <div className="w-full space-y-4 p-2 sm:p-2 bg-slate-900 text-slate-100">
       {/* Header Row */}
       <div className="flex items-center justify-between border-b border-slate-400 pb-2">
         <div className="space-y-0.5">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+          <h1 className="text-xl sm:text-1xl tracking-tight text-white">
             Shop Dashboard
           </h1>
           <p className="text-xs sm:text-sm text-slate-400">
