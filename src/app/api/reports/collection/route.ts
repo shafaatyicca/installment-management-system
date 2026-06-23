@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const fromDate = searchParams.get("from");
     const toDate = searchParams.get("to");
 
-    const invoices = await Invoice.find({});
+    const invoices = await Invoice.find({}).populate("customer");
 
     let totalSaleValue = 0;
     let totalCollected = 0;
@@ -31,27 +31,33 @@ export async function GET(request: Request) {
     const to = toDate ? new Date(toDate) : null;
     if (to) to.setHours(23, 59, 59, 999);
 
+    const detailedList: any[] = [];
+
     invoices.forEach((inv: any) => {
-      totalSaleValue += inv.salePrice || 0;
+      // 🔥 TOTAL SALE VALUE: Agar date filter hai, sirf us range mein create hui invoices count karein
+      const invoiceCreatedAt = new Date(inv.createdAt);
+      if (from || to) {
+        const inRange = (!from || invoiceCreatedAt >= from) && (!to || invoiceCreatedAt <= to);
+        if (inRange) {
+          totalSaleValue += inv.salePrice || 0;
+        }
+      } else {
+        totalSaleValue += inv.salePrice || 0;
+      }
 
       inv.installments?.forEach((inst: any) => {
         const dueDate = new Date(inst.dueDate);
 
-        // 🔥 DUE CALCULATION: Agar koi "to" date diya hai to sirf usi tareekh tak
-        // ki kisten count karein jo abhi tak unpaid hain.
-        // Agar koi date filter nahi hai, to current overall dueAmount style behaviour
-        // (yani saari unpaid kisten, chahe future ki ho) follow karein.
+        // DUE CALCULATION
         if (inst.status !== "Paid") {
           if (to) {
-            if (dueDate <= to) {
-              totalDue += inst.amount || 0;
-            }
+            if (dueDate <= to) totalDue += inst.amount || 0;
           } else {
             totalDue += inst.amount || 0;
           }
         }
 
-        // COLLECTION CALCULATION: Sirf paid installments, paidDate ke range ke andar
+        // COLLECTION CALCULATION
         if (inst.status === "Paid" && inst.paidDate) {
           const paidDate = new Date(inst.paidDate);
 
@@ -66,9 +72,23 @@ export async function GET(request: Request) {
           } else {
             totalInstallmentCollected += inst.amountPaid || 0;
           }
+
+          if (from || to) {
+            detailedList.push({
+              invoiceNumber: inv.invoiceNumber,
+              receiptNumber: inst.receiptNumber || "-",
+              customerName: inv.customer?.name || "Deleted Customer",
+              saleType: inv.saleType || "Installment",
+              amount: inst.amountPaid || 0,
+              paidDate: inst.paidDate,
+              balance: inst.remainingAfterThis ?? 0,
+            });
+          }
         }
       });
     });
+
+    detailedList.sort((a, b) => new Date(b.paidDate).getTime() - new Date(a.paidDate).getTime());
 
     return NextResponse.json({
       success: true,
@@ -80,6 +100,7 @@ export async function GET(request: Request) {
         totalInstallmentCollected,
         collectedCount,
         filterApplied: !!(from || to),
+        detailedList,
       },
     });
   } catch (error: any) {

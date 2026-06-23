@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Geist } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar"; // <-- Sidebar import karein
+import Sidebar from "@/components/Sidebar";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-slate-900">
+    <html lang="en" className={cn("bg-slate-900", "font-sans", geist.variable)}>
       <body className={`${inter.className} min-h-screen text-slate-100 flex`}>
         
         {/* 1. Global Fixed Sidebar Layout */}

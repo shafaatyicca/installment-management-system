@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Users, Boxes, FileText, LayoutDashboard, Store, Menu, X, ScrollText, HandCoins, CalendarClock } from "lucide-react";
+import { Users, Boxes, FileText, LayoutDashboard, Store, Menu, X, ScrollText, HandCoins, CalendarClock, TrendingUp  } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false); // Mobile toggle state
+  const [isOpen, setIsOpen] = useState(false); 
 
   const menuItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -15,8 +15,9 @@ export default function Sidebar() {
     { name: "Product Stock", href: "/products", icon: Boxes },
     { name: "Installment Invoices", href: "/invoices", icon: FileText },
     { name: "Customer Ledger", href: "/customer-ledger", icon: ScrollText},
-    { name: "Collections", href: "/collection", icon: HandCoins},
+    { name: "Collection Report", href: "/collection", icon: HandCoins},
     { name: "Overdue Report", href: "/due", icon: CalendarClock},
+    { name: "Profit Report", href: "/profit", icon: TrendingUp},
 
   ];
 

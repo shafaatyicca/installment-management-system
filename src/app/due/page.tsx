@@ -7,11 +7,15 @@ import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import InvoiceDetails from "@/components/InvoiceDetails";
 
 export default function DueReportPage() {
   const [dueList, setDueList] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+const [detailsLoading, setDetailsLoading] = useState(false);
 
   const fetchReport = async () => {
     setLoading(true);
@@ -34,6 +38,24 @@ export default function DueReportPage() {
   useEffect(() => {
     fetchReport();
   }, []);
+
+  const handleViewInvoice = async (invoiceId: string) => {
+  setDetailsLoading(true);
+  try {
+    const response = await fetch(`/api/invoices?id=${invoiceId}`);
+    const resData = await response.json();
+    if (resData.success) {
+      setSelectedInvoice(resData.data);
+      setIsDetailsOpen(true);
+    } else {
+      toast.error(resData.message || "Invoice load nahi ho saka");
+    }
+  } catch (error) {
+    toast.error("Network error, dubara koshish karein");
+  } finally {
+    setDetailsLoading(false);
+  }
+};
 
   // 📄 PDF EXPORT
   const handleExportPDF = () => {
@@ -201,14 +223,12 @@ export default function DueReportPage() {
                         </div>
                       </div>
 
-                      {d.customerId && (
-                        <Link
-                          href={`/reports/customer-ledger?customerId=${d.customerId}`}
-                          className="flex items-center justify-center gap-1.5 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-lg border border-indigo-500/10 transition"
-                        >
-                          <Eye className="w-3 h-3" /> View Ledger
-                        </Link>
-                      )}
+                      <button
+  onClick={() => handleViewInvoice(d.invoiceId)}
+  className="flex items-center justify-center gap-1.5 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-lg border border-indigo-500/10 transition cursor-pointer"
+>
+  <Eye className="w-3 h-3" /> View Invoice
+</button>
                     </div>
                   ))}
                 </div>
@@ -250,15 +270,13 @@ export default function DueReportPage() {
                               </span>
                             </td>
                             <td className="p-2 text-center">
-                              {d.customerId && (
-                                <Link
-                                  href={`/reports/customer-ledger?customerId=${d.customerId}`}
-                                  className="text-xs text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 p-1.5 rounded-md border border-indigo-500/20 transition inline-flex items-center gap-1"
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                </Link>
-                              )}
-                            </td>
+  <button
+    onClick={() => handleViewInvoice(d.invoiceId)}
+    className="text-xs text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 p-1.5 rounded-md border border-indigo-500/20 transition inline-flex items-center gap-1 cursor-pointer"
+  >
+    <Eye className="w-3.5 h-3.5" />
+  </button>
+</td>
                           </tr>
                         ))}
                       </tbody>
@@ -270,6 +288,28 @@ export default function DueReportPage() {
           </>
         )}
       </div>
+
+      {isDetailsOpen && (
+  <InvoiceDetails
+    invoice={selectedInvoice}
+    onClose={() => {
+      setIsDetailsOpen(false);
+      setSelectedInvoice(null);
+    }}
+    onRefresh={async () => {
+      fetchReport();
+      try {
+        const response = await fetch(`/api/invoices?id=${selectedInvoice._id}`);
+        const resData = await response.json();
+        if (resData.success) {
+          setSelectedInvoice(resData.data);
+        }
+      } catch (error) {
+        console.error("Invoice refresh failed", error);
+      }
+    }}
+  />
+)}
     </div>
   );
 }

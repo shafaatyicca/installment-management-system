@@ -125,11 +125,12 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                 >
                   <Trash2 className="w-3 h-3" /> Delete
                 </button>
-                <button 
-                  className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-lg border border-indigo-500/10 transition"
-                >
-                  <Eye className="w-3 h-3" /> Profile
-                </button>
+                <Link 
+                    href={`/customer-ledger?customerId=${customer._id}`}
+                    className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-lg border border-indigo-500/10 transition"
+                  >
+                    <Eye className="w-3 h-3" /> Ledger
+                  </Link>
               </div>
             </div>
           ))
@@ -189,7 +190,7 @@ export default function CustomerTable({ customers, loading, onEditClick, onSucce
                     </td>
                     <td className="p-2 text-right flex justify-end gap-2">
                       <Link 
-                        href={`/customers/${customer._id}`}
+                        href={`/customer-ledger?customerId=${customer._id}`}
                         className="text-xs cursor-pointer text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-1.5 rounded-md border border-indigo-500/20 transition"
                       >
                         <Eye className="w-3.5 h-3.5" />
